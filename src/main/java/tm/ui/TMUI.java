@@ -239,6 +239,11 @@ public class TMUI extends JFrame {
 	private JMenuItem _3200MenuItem = new JMenuItem("3200%");
 	private JMenu blockSizeMenu = new JMenu("Block Size");
 	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem = new JCheckBoxMenuItem("Full Canvas");
+	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem8x8 = new JCheckBoxMenuItem("8x8 pixels");
+	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem8x16 = new JCheckBoxMenuItem("8x16 pixels");
+	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem16x16 = new JCheckBoxMenuItem("16x16 pixels");
+	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem24x24 = new JCheckBoxMenuItem("24x24 pixels");
+	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem32x32 = new JCheckBoxMenuItem("32x32 pixels");
 	private JMenuItem customBlockSizeMenuItem = new JMenuItem("Custom...");
 	private JRadioButtonMenuItem rowInterleaveBlocksMenuItem = new JRadioButtonMenuItem("Row-interleave Blocks");
 	private JMenu modeMenu = new JMenu("Mode");
@@ -1424,7 +1429,45 @@ public class TMUI extends JFrame {
 						doSizeBlockToCanvasCommand();
 					}
 				});
+		sizeBlockToCanvasMenuItem8x8.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						doSizeBlock8x8ToCanvasCommand();
+					}
+				});
+		sizeBlockToCanvasMenuItem8x16.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						doSizeBlock8x16ToCanvasCommand();
+					}
+				});
+		sizeBlockToCanvasMenuItem16x16.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						doSizeBlock16x16ToCanvasCommand();
+					}
+				});
+		sizeBlockToCanvasMenuItem24x24.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						doSizeBlock24x24ToCanvasCommand();
+					}
+				});
+		sizeBlockToCanvasMenuItem32x32.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						doSizeBlock32x32ToCanvasCommand();
+					}
+				});
 		blockSizeMenu.add(sizeBlockToCanvasMenuItem);
+		//
+		blockSizeMenu.addSeparator();
+		// Pre Defined Block Size
+		blockSizeMenu.add(sizeBlockToCanvasMenuItem8x8);
+		blockSizeMenu.add(sizeBlockToCanvasMenuItem8x16);
+		blockSizeMenu.add(sizeBlockToCanvasMenuItem16x16);
+		blockSizeMenu.add(sizeBlockToCanvasMenuItem24x24);
+		blockSizeMenu.add(sizeBlockToCanvasMenuItem32x32);
 		//
 		blockSizeMenu.addSeparator();
 		// Custom Block Size
@@ -2827,6 +2870,117 @@ public class TMUI extends JFrame {
 		if (view != null) {
 			view.setSizeBlockToCanvas(!view.getSizeBlockToCanvas());
 			sizeBlockToCanvasMenuItem.setSelected(view.getSizeBlockToCanvas());
+			sizeBlockToCanvasMenuItem8x8.setSelected(false);
+			sizeBlockToCanvasMenuItem8x16.setSelected(false);
+			sizeBlockToCanvasMenuItem16x16.setSelected(false);
+			sizeBlockToCanvasMenuItem24x24.setSelected(false);
+			sizeBlockToCanvasMenuItem32x32.setSelected(false);
+		}
+	}
+
+	/**
+	*
+	*
+	*
+	**/
+
+	public void doSizeBlock8x8ToCanvasCommand() {
+		TMView view = getSelectedView();
+		if (view != null) {
+			// TMBlockSizeDialog blockSizeDialog = new TMBlockSizeDialog(this, xl);
+			view.setSizeBlockToCanvas(false);
+			sizeBlockToCanvasMenuItem.setSelected(false);
+			sizeBlockToCanvasMenuItem8x8.setSelected(true);
+			sizeBlockToCanvasMenuItem8x16.setSelected(false);
+			sizeBlockToCanvasMenuItem16x16.setSelected(false);
+			sizeBlockToCanvasMenuItem24x24.setSelected(false);
+			sizeBlockToCanvasMenuItem32x32.setSelected(false);
+			view.setBlockDimensions(1, 1);
+		}
+	}
+
+	/**
+	*
+	*
+	*
+	**/
+
+	public void doSizeBlock8x16ToCanvasCommand() {
+		TMView view = getSelectedView();
+		if (view != null) {
+			// TMBlockSizeDialog blockSizeDialog = new TMBlockSizeDialog(this, xl);
+			view.setSizeBlockToCanvas(false);
+			sizeBlockToCanvasMenuItem.setSelected(false);
+			sizeBlockToCanvasMenuItem8x8.setSelected(false);
+			sizeBlockToCanvasMenuItem8x16.setSelected(true);
+			sizeBlockToCanvasMenuItem16x16.setSelected(false);
+			sizeBlockToCanvasMenuItem24x24.setSelected(false);
+			sizeBlockToCanvasMenuItem32x32.setSelected(false);
+			view.setBlockDimensions(1, 2);
+		}
+	}
+
+	/**
+	*
+	*
+	*
+	**/
+
+	public void doSizeBlock16x16ToCanvasCommand() {
+		TMView view = getSelectedView();
+		if (view != null) {
+			// TMBlockSizeDialog blockSizeDialog = new TMBlockSizeDialog(this, xl);
+			view.setSizeBlockToCanvas(false);
+			sizeBlockToCanvasMenuItem.setSelected(false);
+			sizeBlockToCanvasMenuItem8x8.setSelected(false);
+			sizeBlockToCanvasMenuItem8x16.setSelected(false);
+			sizeBlockToCanvasMenuItem16x16.setSelected(true);
+			sizeBlockToCanvasMenuItem24x24.setSelected(false);
+			sizeBlockToCanvasMenuItem32x32.setSelected(false);
+			view.setBlockDimensions(2, 2);
+		}
+	}
+	
+
+	/**
+	*
+	*
+	*
+	**/
+
+	public void doSizeBlock24x24ToCanvasCommand() {
+		TMView view = getSelectedView();
+		if (view != null) {
+			// TMBlockSizeDialog blockSizeDialog = new TMBlockSizeDialog(this, xl);
+			view.setSizeBlockToCanvas(false);
+			sizeBlockToCanvasMenuItem.setSelected(false);
+			sizeBlockToCanvasMenuItem8x8.setSelected(false);
+			sizeBlockToCanvasMenuItem8x16.setSelected(false);
+			sizeBlockToCanvasMenuItem16x16.setSelected(false);
+			sizeBlockToCanvasMenuItem24x24.setSelected(true);
+			sizeBlockToCanvasMenuItem32x32.setSelected(false);
+			view.setBlockDimensions(3, 3);
+		}
+	}
+
+	/**
+	*
+	*
+	*
+	**/
+
+	public void doSizeBlock32x32ToCanvasCommand() {
+		TMView view = getSelectedView();
+		if (view != null) {
+			// TMBlockSizeDialog blockSizeDialog = new TMBlockSizeDialog(this, xl);
+			view.setSizeBlockToCanvas(false);
+			sizeBlockToCanvasMenuItem.setSelected(false);
+			sizeBlockToCanvasMenuItem8x8.setSelected(false);
+			sizeBlockToCanvasMenuItem8x16.setSelected(false);
+			sizeBlockToCanvasMenuItem16x16.setSelected(false);
+			sizeBlockToCanvasMenuItem24x24.setSelected(false);
+			sizeBlockToCanvasMenuItem32x32.setSelected(true);
+			view.setBlockDimensions(4, 4);
 		}
 	}
 
