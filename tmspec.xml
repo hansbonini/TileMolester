@@ -30,6 +30,10 @@
 			<data>000000990000009900CC6600000099990099009999CCCCCC666666FF666666FF66FFFF666666FFFF66FF66FFFFFFFFFF</data>
 			<description>Enhanced Graphics Adapter (EGA)</description>
 		</indexedcolor>
+		<indexedcolor id="CF07" bpp="15" endianness="big">
+			<data>000000111111222222333333444444555555666666777777888888999999AAAAAABBBBBBCCCCCCDDDDDDEEEEEEFFFFFF</data>
+			<description>Grayscale</description>
+		</indexedcolor>
 
 	</colorformats>
 
@@ -206,31 +210,31 @@
 		<palettefilter extensions="fc?" colorformat="CF02" size="32" offset="4276">
 			<description>FCEUltra Save States (*.fc?)</description>
 		</palettefilter>
-
 		<palettefilter extensions="gs?" colorformat="CF05" size="64" offset="274" endianness="little">
 			<description>Genecyst/Kega/Gens Save States (*.gs?)</description>
 		</palettefilter>
-
+		<palettefilter extensions="bin" colorformat="CF05" size="64" offset="0" endianness="little">
+			<description>Sega Genesis CRAM Dump (*.bin)</description>
+		</palettefilter>
 		<palettefilter extensions="st?" colorformat="CF02" size="32" offset="22791">
 			<description>NESticle Save States (*.st?)</description>
 		</palettefilter>
-
 		<palettefilter extensions="zs?" colorformat="CF00" size="256" offset="1560" endianness="little">
 			<description>ZSNES Save States (*.zs?)</description>
 		</palettefilter>
-
+		<palettefilter extensions="dmp" colorformat="CF00" size="256" offset="0" endianness="little">
+			<description>Mesen SNES CGRAM Dump (*.dmp)</description>
+		</palettefilter>
 		<palettefilter extensions="tpl" colorformat="CF01" size="256" offset="4" endianness="big">
 			<description>Tile Layer Pro palette (*.tpl)</description>
 		</palettefilter>
-
 		<palettefilter extensions="pal" colorformat="RIFF" size="256" offset="24" endianness="big">
             <description>Windows Palette (*.pal)</description>
         </palettefilter>
-
 		<palettefilter extensions="col,pal,bak" colorformat="CF00" size="256" offset="0">
 			<description>Raw palette file (*.col,*.pal)</description>
 		</palettefilter>
-		
+
 	</palettefilters>
 
 	<filelisteners>
@@ -239,7 +243,7 @@
 		<filelistener classname="GameBoyAdvanceFileListener"/>
 		<filelistener classname="SegaMasterSystemFileListener"/>
 		<filelistener classname="SegaGenesisFileListener"/>
-
+		
 	</filelisteners>
 
 </tmspec>
