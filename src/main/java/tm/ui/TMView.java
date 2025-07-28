@@ -391,6 +391,9 @@ public class TMView extends JInternalFrame {
 	/**
 	 *
 	 * Sets the size of the tile grid.
+	 * 
+	 * Note: When "Full Canvas" block sizing is enabled, changing canvas dimensions
+	 * will also update block dimensions to match the canvas size.
 	 *
 	 **/
 

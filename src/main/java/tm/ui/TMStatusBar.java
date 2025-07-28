@@ -214,6 +214,19 @@ public class TMStatusBar extends JPanel {
             blockHeightSpinner.setValue(height);
         }
     }
+    
+    /**
+     * Updates the block size label to show Full Canvas mode status.
+     */
+    public void updateBlockSizeLabel(boolean isFullCanvas) {
+        if (isFullCanvas) {
+            blockSizeLabel.setText("Block Size (Full Canvas):");
+            blockSizeLabel.setToolTipText("Block dimensions automatically match canvas size");
+        } else {
+            blockSizeLabel.setText("Block Size:");
+            blockSizeLabel.setToolTipText("Block dimensions are independent of canvas size");
+        }
+    }
 
 /**
 *
@@ -342,8 +355,9 @@ public class TMStatusBar extends JPanel {
         setMode(view.getMode());
         setTiles(view.getCols(), view.getRows());
         
-        // Update block size spinners
+        // Update block size spinners and label
         setBlockSize(view.getBlockWidth(), view.getBlockHeight());
+        updateBlockSizeLabel(view.getSizeBlockToCanvas());
         
         // Update swizzle information
         setSwizzle(view.getSwizzlePattern(), view.getTileCodec());

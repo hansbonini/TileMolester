@@ -2953,6 +2953,12 @@ public class TMUI extends JFrame {
 			sizeBlockToCanvasMenuItem16x16.setSelected(false);
 			sizeBlockToCanvasMenuItem24x24.setSelected(false);
 			sizeBlockToCanvasMenuItem32x32.setSelected(false);
+			
+			// Update status bar to reflect the change
+			if (statusBar != null) {
+				statusBar.updateBlockSizeLabel(view.getSizeBlockToCanvas());
+				statusBar.setBlockSize(view.getBlockWidth(), view.getBlockHeight());
+			}
 		}
 	}
 
