@@ -163,6 +163,10 @@ public class TMFileResources {
 			// String palID = e.getAttribute("palette");
 			String codecID = e.getAttribute("codec");
 			TileCodec codec = ui.getTileCodecByID(codecID);
+			String swizzlePattern = e.getAttribute("swizzlepattern");
+			if (swizzlePattern == null || swizzlePattern.isEmpty()) {
+				swizzlePattern = TileCodec.SWIZZLE_NONE; // Default value for backward compatibility
+			}
 			String desc = XMLParser.getNodeValue(getChildTag(e, "description", 0));
 			BookmarkItemNode bookmark = new BookmarkItemNode(
 					offset,
@@ -175,6 +179,7 @@ public class TMFileResources {
 					mode,
 					palIndex,
 					codec,
+					swizzlePattern,
 					desc);
 			folder.add(bookmark);
 		}

@@ -248,6 +248,15 @@ public class TMUI extends JFrame {
 	private JMenuItem customBlockSizeMenuItem = new JMenuItem("Custom...");
 	private JMenuItem customTileSizeMenuItem = new JMenuItem("Custom Tile Size...");
 	private JRadioButtonMenuItem rowInterleaveBlocksMenuItem = new JRadioButtonMenuItem("Row-interleave Blocks");
+	private JMenu swizzleMenu = new JMenu("Swizzle");
+	private JRadioButtonMenuItem swizzleNoneMenuItem = new JRadioButtonMenuItem("None");
+	private JRadioButtonMenuItem swizzleBCMenuItem = new JRadioButtonMenuItem("BC");
+	private JRadioButtonMenuItem swizzlePSPMenuItem = new JRadioButtonMenuItem("PSP");
+	private JRadioButtonMenuItem swizzleNDSMenuItem = new JRadioButtonMenuItem("NDS");
+	private JRadioButtonMenuItem swizzle3DSMenuItem = new JRadioButtonMenuItem("3DS");
+	private JRadioButtonMenuItem swizzleWiiMenuItem = new JRadioButtonMenuItem("WII");
+	private JRadioButtonMenuItem swizzleSWITCHMenuItem = new JRadioButtonMenuItem("SWITCH");
+	private JRadioButtonMenuItem swizzleCustomMenuItem = new JRadioButtonMenuItem("Custom");
 	private JMenu modeMenu = new JMenu("Mode");
 	private JRadioButtonMenuItem _1DimensionalMenuItem = new JRadioButtonMenuItem("1-Dimensional");
 	private JRadioButtonMenuItem _2DimensionalMenuItem = new JRadioButtonMenuItem("2-Dimensional");
@@ -299,6 +308,7 @@ public class TMUI extends JFrame {
 	private ButtonGroup paletteButtonGroup = new ButtonGroup();
 	private ButtonGroup modeButtonGroup = new ButtonGroup();
 	private ButtonGroup paletteEndiannessButtonGroup = new ButtonGroup();
+	private ButtonGroup swizzleButtonGroup = new ButtonGroup();
 
 	private Hashtable tileCodecButtonHashtable = new Hashtable();
 	private Hashtable colorCodecButtonHashtable = new Hashtable();
@@ -408,6 +418,15 @@ public class TMUI extends JFrame {
 		sizeBlockToCanvasMenuItem.setText(xlate("Full_Canvas"));
 		customBlockSizeMenuItem.setText(xlate("Custom_Block_Size"));
 		rowInterleaveBlocksMenuItem.setText(xlate("Row_Interleave_Blocks"));
+		swizzleMenu.setText(xlate("Swizzle"));
+		swizzleNoneMenuItem.setText(xlate("Swizzle_None"));
+		swizzleBCMenuItem.setText(xlate("Swizzle_BC"));
+		swizzlePSPMenuItem.setText(xlate("Swizzle_PSP"));
+		swizzleNDSMenuItem.setText(xlate("Swizzle_NDS"));
+		swizzle3DSMenuItem.setText(xlate("Swizzle_3DS"));
+		swizzleWiiMenuItem.setText(xlate("Swizzle_WII"));
+		swizzleSWITCHMenuItem.setText(xlate("Swizzle_SWITCH"));
+		swizzleCustomMenuItem.setText(xlate("Swizzle_Custom"));
 		blockGridMenuItem.setText(xlate("Block_Grid"));
 		tileGridMenuItem.setText(xlate("Tile_Grid"));
 		pixelGridMenuItem.setText(xlate("Pixel_Grid"));
@@ -1504,6 +1523,50 @@ public class TMUI extends JFrame {
 					}
 				});
 		viewMenu.add(rowInterleaveBlocksMenuItem);
+		// Swizzle submenu
+		swizzleNoneMenuItem.setMnemonic(KeyEvent.VK_N);
+		swizzleNoneMenuItem.addActionListener(e -> doSwizzleCommand(TileCodec.SWIZZLE_NONE));
+		swizzleButtonGroup.add(swizzleNoneMenuItem);
+		swizzleMenu.add(swizzleNoneMenuItem);
+		
+		swizzleBCMenuItem.setMnemonic(KeyEvent.VK_B);
+		swizzleBCMenuItem.addActionListener(e -> doSwizzleCommand(TileCodec.SWIZZLE_BC));
+		swizzleButtonGroup.add(swizzleBCMenuItem);
+		swizzleMenu.add(swizzleBCMenuItem);
+		
+		swizzlePSPMenuItem.setMnemonic(KeyEvent.VK_P);
+		swizzlePSPMenuItem.addActionListener(e -> doSwizzleCommand(TileCodec.SWIZZLE_PSP));
+		swizzleButtonGroup.add(swizzlePSPMenuItem);
+		swizzleMenu.add(swizzlePSPMenuItem);
+		
+		swizzleNDSMenuItem.setMnemonic(KeyEvent.VK_D);
+		swizzleNDSMenuItem.addActionListener(e -> doSwizzleCommand(TileCodec.SWIZZLE_NDS));
+		swizzleButtonGroup.add(swizzleNDSMenuItem);
+		swizzleMenu.add(swizzleNDSMenuItem);
+		
+		swizzle3DSMenuItem.setMnemonic(KeyEvent.VK_3);
+		swizzle3DSMenuItem.addActionListener(e -> doSwizzleCommand(TileCodec.SWIZZLE_3DS));
+		swizzleButtonGroup.add(swizzle3DSMenuItem);
+		swizzleMenu.add(swizzle3DSMenuItem);
+		
+		swizzleWiiMenuItem.setMnemonic(KeyEvent.VK_W);
+		swizzleWiiMenuItem.addActionListener(e -> doSwizzleCommand(TileCodec.SWIZZLE_WII));
+		swizzleButtonGroup.add(swizzleWiiMenuItem);
+		swizzleMenu.add(swizzleWiiMenuItem);
+		
+		swizzleSWITCHMenuItem.setMnemonic(KeyEvent.VK_H);
+		swizzleSWITCHMenuItem.addActionListener(e -> doSwizzleCommand(TileCodec.SWIZZLE_SWITCH));
+		swizzleButtonGroup.add(swizzleSWITCHMenuItem);
+		swizzleMenu.add(swizzleSWITCHMenuItem);
+		
+		swizzleCustomMenuItem.setMnemonic(KeyEvent.VK_C);
+		swizzleCustomMenuItem.addActionListener(e -> doCustomSwizzleCommand());
+		swizzleButtonGroup.add(swizzleCustomMenuItem);
+		swizzleMenu.add(swizzleCustomMenuItem);
+		
+		// Default to None
+		swizzleNoneMenuItem.setSelected(true);
+		viewMenu.add(swizzleMenu);
 		//
 		viewMenu.addSeparator();
 		// Block Grid
@@ -3101,6 +3164,66 @@ public class TMUI extends JFrame {
 
 	/**
 	*
+	* Sets the swizzle pattern for the current view.
+	*
+	**/
+
+	public void doSwizzleCommand(String swizzlePattern) {
+		TMView view = getSelectedView();
+		if (view != null) {
+			// Set optimal tile dimensions for the selected swizzle pattern
+			tm.tilecodecs.SwizzleUtil.setOptimalTileDimensions(swizzlePattern, view.getTileCodec());
+			
+			view.setSwizzlePattern(swizzlePattern);
+			updateSwizzleMenuSelection(swizzlePattern);
+			refreshStatusBar(); // Update status bar to show swizzle info
+			
+			// Refresh the view to apply new tile dimensions
+			view.getEditorCanvas().repaint();
+		}
+	}
+
+	/**
+	*
+	* Opens the custom swizzle configuration dialog.
+	*
+	**/
+
+	public void doCustomSwizzleCommand() {
+		TMView view = getSelectedView();
+		if (view != null) {
+			CustomSwizzleDialog dialog = new CustomSwizzleDialog(this, view.getTileCodec());
+			dialog.setVisible(true);
+			if (dialog.isOK()) {
+				view.setSwizzlePattern(TileCodec.SWIZZLE_CUSTOM);
+				updateSwizzleMenuSelection(TileCodec.SWIZZLE_CUSTOM);
+				refreshStatusBar(); // Update status bar to show swizzle info
+			} else {
+				// If cancelled, revert to previous selection
+				updateSwizzleMenuSelection(view.getSwizzlePattern());
+			}
+		}
+	}
+
+	/**
+	*
+	* Updates the swizzle menu selection based on the current pattern.
+	*
+	**/
+
+	private void updateSwizzleMenuSelection(String swizzlePattern) {
+		swizzleNoneMenuItem.setSelected(TileCodec.SWIZZLE_NONE.equals(swizzlePattern));
+		swizzleBCMenuItem.setSelected(TileCodec.SWIZZLE_BC.equals(swizzlePattern));
+		swizzlePSPMenuItem.setSelected(TileCodec.SWIZZLE_PSP.equals(swizzlePattern));
+		swizzleNDSMenuItem.setSelected(TileCodec.SWIZZLE_NDS.equals(swizzlePattern));
+		swizzle3DSMenuItem.setSelected(TileCodec.SWIZZLE_3DS.equals(swizzlePattern));
+		swizzleWiiMenuItem.setSelected(TileCodec.SWIZZLE_WII.equals(swizzlePattern));
+		swizzleSWITCHMenuItem.setSelected(TileCodec.SWIZZLE_SWITCH.equals(swizzlePattern));
+		swizzleCustomMenuItem.setSelected(TileCodec.SWIZZLE_CUSTOM.equals(swizzlePattern));
+	}
+
+	/**
+	*
 	*
 	*
 	**/
@@ -4441,6 +4564,7 @@ public class TMUI extends JFrame {
 		tileGridMenuItem.setSelected(ec.isTileGridVisible());
 		pixelGridMenuItem.setSelected(ec.isPixelGridVisible());
 		rowInterleaveBlocksMenuItem.setSelected(ec.getRowInterleaveBlocks());
+		updateSwizzleMenuSelection(ec.getSwizzlePattern());
 
 		refreshModeSelection(view);
 		refreshTileCodecSelection(view);

@@ -20,9 +20,8 @@ package tm.canvases;
 
 import tm.TMPalette;
 import tm.tilecodecs.TileCodec;
-import javax.swing.*;
+import tm.tilecodecs.SwizzleUtil;
 import java.awt.*;
-import java.awt.image.*;
 
 /**
 *
@@ -303,7 +302,30 @@ public class TMTileCanvas extends TMPixelCanvas {
                         for (int p=0; p<tileHeight; p++) {
                             for (int q=0; q<tileWidth; q++) {
                                 if (tileOfs < pixels.length && pos < decodedTile.length) {
-                                    pixels[tileOfs++] = palette.getEntryRGB(colorIndex + decodedTile[pos++]);
+                                    // Apply swizzle pattern: get correct source position from data
+                                    int srcPos = pos;
+                                    if (codec.getSwizzlePattern() != TileCodec.SWIZZLE_NONE) {
+                                        // Calculate global coordinates within the canvas
+                                        int globalX = j * tileWidth + q;
+                                        int globalY = i * tileHeight + p;
+                                        int canvasWidth = cols * tileWidth;
+                                        int canvasHeight = rows * tileHeight;
+                                        
+                                        // For display: Apply swizzle to get the correct data position
+                                        int globalPos = SwizzleUtil.applySwizzle(globalX, globalY, canvasWidth, canvasHeight, 
+                                            codec.getSwizzlePattern(), codec.getCustomBlockWidth(), 
+                                            codec.getCustomBlockHeight(), codec.getCustomMortonOrder());
+                                        
+                                        // Convert global position back to tile-relative position
+                                        srcPos = globalPos % (tileWidth * tileHeight);
+                                    }
+                                    
+                                    if (srcPos < decodedTile.length) {
+                                        pixels[tileOfs++] = palette.getEntryRGB(colorIndex + decodedTile[srcPos]);
+                                    } else {
+                                        pixels[tileOfs++] = 0xFF000000; // Fallback
+                                    }
+                                    pos++;
                                 } else {
                                     // Se não há dados suficientes, use cor transparente/background
                                     if (tileOfs < pixels.length) {
@@ -321,13 +343,29 @@ public class TMTileCanvas extends TMPixelCanvas {
                         for (int p=0; p<tileHeight; p++) {
                             for (int q=0; q<tileWidth; q++) {
                                 if (tileOfs < pixels.length && pos < decodedTile.length) {
-                                    pixels[tileOfs++] = decodedTile[pos++];
-                                } else {
-                                    // Se não há dados suficientes, use cor transparente/background
-                                    if (tileOfs < pixels.length) {
-                                        pixels[tileOfs] = 0xFF000000; // Preto transparente como fallback
+                                    // Apply swizzle pattern: get correct source position from data
+                                    int srcPos = pos;
+                                    if (codec.getSwizzlePattern() != TileCodec.SWIZZLE_NONE) {
+                                        // Calculate global coordinates within the canvas
+                                        int globalX = j * tileWidth + q;
+                                        int globalY = i * tileHeight + p;
+                                        int canvasWidth = cols * tileWidth;
+                                        int canvasHeight = rows * tileHeight;
+                                        
+                                        // For display: Apply swizzle to get the correct data position
+                                        int globalPos = SwizzleUtil.applySwizzle(globalX, globalY, canvasWidth, canvasHeight, 
+                                            codec.getSwizzlePattern(), codec.getCustomBlockWidth(), 
+                                            codec.getCustomBlockHeight(), codec.getCustomMortonOrder());
+                                        
+                                        // Convert global position back to tile-relative position
+                                        srcPos = globalPos % (tileWidth * tileHeight);
                                     }
-                                    tileOfs++;
+                                    
+                                    if (srcPos < decodedTile.length) {
+                                        pixels[tileOfs++] = decodedTile[srcPos];
+                                    } else {
+                                        pixels[tileOfs++] = 0xFF000000; // Fallback
+                                    }
                                     pos++;
                                 }
                             }
@@ -390,7 +428,30 @@ public class TMTileCanvas extends TMPixelCanvas {
                         for (int p=0; p<tileHeight; p++) {
                             for (int q=0; q<tileWidth; q++) {
                                 if (pos < pixdata.length && tileOfs < pixels.length) {
-                                    pixdata[pos++] = palette.indexOf(colorIndex, pixels[tileOfs++]);
+                                    // Apply swizzle pattern: determine where this pixel should go in the tile data
+                                    int destPos = pos;
+                                    if (codec.getSwizzlePattern() != TileCodec.SWIZZLE_NONE) {
+                                        // Calculate global coordinates within the canvas
+                                        int globalX = j * tileWidth + q;
+                                        int globalY = i * tileHeight + p;
+                                        int canvasWidth = cols * tileWidth;
+                                        int canvasHeight = rows * tileHeight;
+                                        
+                                        // For encoding: Apply swizzle to determine destination position
+                                        int globalPos = SwizzleUtil.applySwizzle(globalX, globalY, canvasWidth, canvasHeight, 
+                                            codec.getSwizzlePattern(), codec.getCustomBlockWidth(), 
+                                            codec.getCustomBlockHeight(), codec.getCustomMortonOrder());
+                                        
+                                        // Convert global position back to tile-relative position
+                                        destPos = globalPos % (tileWidth * tileHeight);
+                                    }
+                                    
+                                    if (destPos < pixdata.length) {
+                                        pixdata[destPos] = palette.indexOf(colorIndex, pixels[tileOfs++]);
+                                    } else {
+                                        tileOfs++;
+                                    }
+                                    pos++;
                                 } else {
                                     pos++;
                                     tileOfs++;

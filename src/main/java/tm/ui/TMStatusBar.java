@@ -41,6 +41,7 @@ public class TMStatusBar extends JPanel {
     private JLabel modeLabel = new JLabel(" ");
     private JLabel tilesLabel = new JLabel(" ");
     private JLabel messageLabel = new JLabel(" ");
+    private JLabel swizzleLabel = new JLabel(" ");  // Swizzle pattern information
     
     // Tile size controls
     private JLabel tileSizeLabel = new JLabel("Tile Size:");
@@ -120,13 +121,20 @@ public class TMStatusBar extends JPanel {
             p5.add(blockWidthSpinner);
             p5.add(new JLabel("H:"));
             p5.add(blockHeightSpinner);
+            
+            // Create swizzle panel
+            JPanel p6 = new JPanel();
+            p6.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+            p6.add(new JLabel("Swizzle:"));
+            p6.add(swizzleLabel);
 
-            setLayout(new GridLayout(1, 6));
+            setLayout(new GridLayout(1, 7));
             add(p1);
             add(p2);
             add(p3);
             add(p4);
             add(p5);
+            add(p6);
         } else {
             setLayout(new GridLayout(1, 4));
             add(p1);
@@ -336,6 +344,9 @@ public class TMStatusBar extends JPanel {
         
         // Update block size spinners
         setBlockSize(view.getBlockWidth(), view.getBlockHeight());
+        
+        // Update swizzle information
+        setSwizzle(view.getSwizzlePattern(), view.getTileCodec());
     }
 
 /**
@@ -361,5 +372,36 @@ public class TMStatusBar extends JPanel {
 	 */
 	public void setCoords(String string) {
 		coordsLabel.setText(string);
+	}
+
+	/**
+	 * Sets the swizzle information text.
+	 */
+	public void setSwizzle(String swizzlePattern, tm.tilecodecs.TileCodec codec) {
+		if (swizzlePattern == null || tm.tilecodecs.TileCodec.SWIZZLE_NONE.equals(swizzlePattern)) {
+			swizzleLabel.setText("None");
+		} else if (tm.tilecodecs.TileCodec.SWIZZLE_CUSTOM.equals(swizzlePattern) && codec != null) {
+			String mortonText = codec.getCustomMortonOrder() ? "Morton" : "Linear";
+			swizzleLabel.setText(String.format("Custom %dx%d %s", 
+				codec.getCustomBlockWidth(), codec.getCustomBlockHeight(), mortonText));
+		} else {
+			// For predefined patterns, just show the pattern name
+			swizzleLabel.setText(getSwizzleDisplayName(swizzlePattern));
+		}
+	}
+
+	/**
+	 * Gets a user-friendly display name for a swizzle pattern.
+	 */
+	private String getSwizzleDisplayName(String pattern) {
+		switch (pattern) {
+			case tm.tilecodecs.TileCodec.SWIZZLE_BC: return "BC";
+			case tm.tilecodecs.TileCodec.SWIZZLE_PSP: return "PSP";
+			case tm.tilecodecs.TileCodec.SWIZZLE_NDS: return "NDS";
+			case tm.tilecodecs.TileCodec.SWIZZLE_3DS: return "3DS";
+			case tm.tilecodecs.TileCodec.SWIZZLE_WII: return "WII";
+			case tm.tilecodecs.TileCodec.SWIZZLE_SWITCH: return "SWITCH";
+			default: return pattern != null ? pattern : "None";
+		}
 	}
 }

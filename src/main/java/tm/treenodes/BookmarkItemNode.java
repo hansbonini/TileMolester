@@ -42,6 +42,7 @@ public class BookmarkItemNode extends TMTreeNode {
     private String description; // entered by the user to describe/name the bookmark
     private String paletteID;
     private int palIndex;
+    private String swizzlePattern;
 
     public BookmarkItemNode(int offset,
                             int cols,
@@ -53,6 +54,7 @@ public class BookmarkItemNode extends TMTreeNode {
                             int mode,
                             int palIndex,
                             TileCodec codec,
+                            String swizzlePattern,
                             String description
                             ) {
         super();
@@ -66,6 +68,7 @@ public class BookmarkItemNode extends TMTreeNode {
         this.mode = mode;
         this.palIndex = palIndex;
         this.codec = codec;
+        this.swizzlePattern = swizzlePattern;
         this.description = description;
     }
 
@@ -127,6 +130,16 @@ public class BookmarkItemNode extends TMTreeNode {
 
     public boolean getRowInterleaved() {
         return rowInterleaved;
+    }
+
+/**
+*
+* Gets the swizzle pattern.
+*
+**/
+
+    public String getSwizzlePattern() {
+        return swizzlePattern;
     }
 
 /**
@@ -207,6 +220,7 @@ public class BookmarkItemNode extends TMTreeNode {
         s.append(" blockheight=\"").append(blockHeight).append("\"");
         s.append(" rowinterleaved=\"").append(rowInterleaved).append("\"");
         s.append(" sizeblocktocanvas=\"").append(sizeBlockToCanvas).append("\"");
+        s.append(" swizzlepattern=\"").append(swizzlePattern).append("\"");
         if (mode == TileCodec.MODE_1D) {
             s.append(" mode=\"1D\"");
         }

@@ -72,6 +72,7 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
     private int blockWidth=1;
     private int blockHeight=1;
     private boolean rowInterleaved=false;
+    private String swizzlePattern = tm.tilecodecs.TileCodec.SWIZZLE_NONE;
 	private boolean showBlockGrid=false;
 
 /**
@@ -1584,6 +1585,29 @@ public ReversibleTileModifyAction encodeSelection()
 
     public boolean getRowInterleaveBlocks() {
         return rowInterleaved;
+    }
+
+/**
+*
+* Sets the swizzle pattern.
+*
+**/
+
+    public void setSwizzlePattern(String swizzlePattern) {
+        this.swizzlePattern = swizzlePattern;
+        if (codec != null) {
+            codec.setSwizzlePattern(swizzlePattern);
+        }
+    }
+
+/**
+*
+* Gets the swizzle pattern.
+*
+**/
+
+    public String getSwizzlePattern() {
+        return swizzlePattern;
     }
 
 }
