@@ -71,24 +71,45 @@ public class PlanarTileCodec extends TileCodec {
 **/
 
     public int[] decode(byte[] bits, int ofs, int stride) {
-        int pos=0;
+        int[] pixels = new int[tileWidth * tileHeight];
+        int pos = 0;
         stride++;
         stride *= bytesPerRow;
-        for (int i=0; i<8; i++) {
-            // do one row of pixels
-            for (int j=0; j<bitsPerPixel; j++) {
-                // get bits for bitplane j
-                bp[j] = bits[ofs+bpOffsets[j]] & 0xFF;
-            }
-            for (int j=0; j<8; j++) {
-                // decode one pixel
-                int p = 0;
-                for (int k=0; k<bitsPerPixel; k++) {
-                    // add bitplane k
-                    p |= bitsToPixelsLookup[k][bp[k]][j];
+        
+        for (int i = 0; i < tileHeight; i++) {
+            // Process pixels in 8-pixel blocks for this row
+            int pixelsProcessed = 0;
+            int rowOfs = ofs;
+            
+            while (pixelsProcessed < tileWidth) {
+                // Read bitplanes for this 8-pixel block
+                for (int j = 0; j < bitsPerPixel; j++) {
+                    if (rowOfs + bpOffsets[j] < bits.length) {
+                        bp[j] = bits[rowOfs + bpOffsets[j]] & 0xFF;
+                    } else {
+                        bp[j] = 0;
+                    }
                 }
-                pixels[pos++] = p;
+                
+                // Decode up to 8 pixels from this block
+                int pixelsInThisBlock = Math.min(8, tileWidth - pixelsProcessed);
+                for (int j = 0; j < pixelsInThisBlock; j++) {
+                    int p = 0;
+                    for (int k = 0; k < bitsPerPixel; k++) {
+                        p |= bitsToPixelsLookup[k][bp[k]][j];
+                    }
+                    if (pos < pixels.length) {
+                        pixels[pos++] = p;
+                    }
+                }
+                
+                pixelsProcessed += pixelsInThisBlock;
+                
+                // Move to next 8-pixel block in the same row
+                rowOfs += bytesPerRow;
             }
+            
+            // Move to next row
             ofs += stride;
         }
         return pixels;
@@ -101,24 +122,42 @@ public class PlanarTileCodec extends TileCodec {
 **/
 
     public void encode(int[] pixels, byte[] bits, int ofs, int stride) {
-        int pos=0;
+        int pos = 0;
         stride++;
         stride *= bytesPerRow;
-        for (int i=0; i<8; i++) {
-            // do one row
-            for (int j=0; j<bitsPerPixel; j++) {
-                // reset bits of bitplane j
-                bits[ofs+bpOffsets[j]] = 0;
-            }
-            for (int j=0; j<8; j++) {
-                // encode one pixel
-                int p = pixels[pos];
-                for (int k=0; k<bitsPerPixel; k++) {
-                    // add bitplane k
-                    bits[ofs+bpOffsets[k]] |= ((p >> k) & 0x01) << (7-j);
+        
+        for (int i = 0; i < tileHeight; i++) {
+            // Process pixels in 8-pixel blocks for this row
+            int pixelsProcessed = 0;
+            int rowOfs = ofs;
+            
+            while (pixelsProcessed < tileWidth) {
+                // Reset bitplanes for this 8-pixel block
+                for (int j = 0; j < bitsPerPixel; j++) {
+                    if (rowOfs + bpOffsets[j] < bits.length) {
+                        bits[rowOfs + bpOffsets[j]] = 0;
+                    }
                 }
-                pos++;
+                
+                // Encode up to 8 pixels in this block
+                int pixelsInThisBlock = Math.min(8, tileWidth - pixelsProcessed);
+                for (int j = 0; j < pixelsInThisBlock; j++) {
+                    int p = (pos < pixels.length) ? pixels[pos++] : 0;
+                    
+                    for (int k = 0; k < bitsPerPixel; k++) {
+                        if (rowOfs + bpOffsets[k] < bits.length) {
+                            bits[rowOfs + bpOffsets[k]] |= ((p >> k) & 0x01) << (7 - j);
+                        }
+                    }
+                }
+                
+                pixelsProcessed += pixelsInThisBlock;
+                
+                // Move to next 8-pixel block in the same row
+                rowOfs += bytesPerRow;
             }
+            
+            // Move to next row
             ofs += stride;
         }
     }

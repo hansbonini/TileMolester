@@ -65,7 +65,6 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
     private Point moveViewPoint;
     private Point moveMousePoint;
 
-    private int[] tempPixels = new int[8*8];
     private Vector modifiedTiles = new Vector(); // tiles modified by operation
     private Vector modifiedPixels = new Vector();
     private Point[][] gridCoords;
@@ -646,7 +645,9 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
 
     protected void setPixelTraceable(int x, int y, int argb) {
         // mark the tile as modified
-        tileModified(x/8, y/8);
+        int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+        int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
+        tileModified(x/tileWidth, y/tileHeight);
 
         setPixel(x, y, argb);
     }
@@ -662,8 +663,12 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
         if (!modifiedTiles.contains(p)) {
             modifiedTiles.add(p);
             // save original pixels
+            int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+            int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
+            int tileSize = tileWidth * tileHeight;
+            int[] tempPixels = new int[tileSize];
             copyTilePixelsToBuffer(col, row, tempPixels, 0);
-            IntBuffer ib = IntBuffer.allocate(8*8);
+            IntBuffer ib = IntBuffer.allocate(tileSize);
             ib.put(tempPixels);
             modifiedPixels.add(ib);
         }
@@ -677,12 +682,19 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
 **/
 
     public void copyTilePixelsToBuffer(int x, int y, int[] buf, int ofs) {
-        int pixOfs = (y * 8 * canvasWidth) + (x * 8);
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                buf[ofs++] = pixels[pixOfs++];
+        int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+        int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
+        int pixOfs = (y * tileHeight * canvasWidth) + (x * tileWidth);
+        for (int i=0; i<tileHeight; i++) {
+            for (int j=0; j<tileWidth; j++) {
+                if (ofs < buf.length && pixOfs < pixels.length) {
+                    buf[ofs++] = pixels[pixOfs++];
+                } else {
+                    ofs++;
+                    pixOfs++;
+                }
             }
-            pixOfs += canvasWidth - 8;
+            pixOfs += canvasWidth - tileWidth;
         }
     }
 
@@ -693,12 +705,19 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
 **/
 
     public void copyBufferToTilePixels(int x, int y, int[] buf, int ofs) {
-        int pixOfs = (y * 8 * canvasWidth) + (x * 8);
-        for (int i=0; i<8; i++) {
-            for (int j=0; j<8; j++) {
-                pixels[pixOfs++] = buf[ofs++];
+        int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+        int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
+        int pixOfs = (y * tileHeight * canvasWidth) + (x * tileWidth);
+        for (int i=0; i<tileHeight; i++) {
+            for (int j=0; j<tileWidth; j++) {
+                if (ofs < buf.length && pixOfs < pixels.length) {
+                    pixels[pixOfs++] = buf[ofs++];
+                } else {
+                    ofs++;
+                    pixOfs++;
+                }
             }
-            pixOfs += canvasWidth - 8;
+            pixOfs += canvasWidth - tileWidth;
         }
     }
 
@@ -718,17 +737,20 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
         BookmarkItemNode bookmark = view.createBookmark("");
 
         Point[] pts = new Point[modifiedTiles.size()];
-        int[] oldPix = new int[pts.length * 8*8];
-        int[] newPix = new int[pts.length * 8*8];
+        int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+        int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
+        int tileSize = tileWidth * tileHeight;
+        int[] oldPix = new int[pts.length * tileSize];
+        int[] newPix = new int[pts.length * tileSize];
 
         for (int i=0; i<modifiedTiles.size(); i++) {
             Point p = (Point)modifiedTiles.elementAt(i);
             pts[i] = new Point(p);
 
             IntBuffer ib = (IntBuffer)modifiedPixels.elementAt(i);
-            System.arraycopy(ib.array(), 0, oldPix, i * 8*8, 8*8);
+            System.arraycopy(ib.array(), 0, oldPix, i * tileSize, tileSize);
 
-            copyTilePixelsToBuffer(p.x, p.y, newPix, i * 8*8);
+            copyTilePixelsToBuffer(p.x, p.y, newPix, i * tileSize);
 
             packTile(p.x, p.y);
         }
@@ -828,9 +850,11 @@ public class TMEditorCanvas extends TMTileCanvas implements MouseInputListener {
 **/
     public void setBlankPixels(int bgColor,int x1,int y1,int x2,int y2)
     {
+        int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+        int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
         //erases original tiles
-        for (int i=y1*8; i<y2*8; i++) {
-            for (int j=x1*8; j<x2*8; j++) {
+        for (int i=y1*tileHeight; i<y2*tileHeight; i++) {
+            for (int j=x1*tileWidth; j<x2*tileWidth; j++) {
                 setPixel(j, i, bgColor);
             }
         }

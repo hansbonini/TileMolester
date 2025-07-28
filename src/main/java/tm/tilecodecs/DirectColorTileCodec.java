@@ -111,12 +111,13 @@ public class DirectColorTileCodec extends TileCodec {
 **/
 
     public int[] decode(byte[] bits, int ofs, int stride) {
+        int[] pixels = new int[tileWidth * tileHeight];
         int v, r, g, b, a, s;
         int pos=0;
         stride *= bytesPerRow;
-        for (int i=0; i<8; i++) {
+        for (int i=0; i<tileHeight; i++) {
             // do one row of pixels
-            for (int j=0; j<8; j++) {
+            for (int j=0; j<tileWidth; j++) {
 
                 // get encoded pixel
                 s = startShift;
@@ -180,9 +181,9 @@ public class DirectColorTileCodec extends TileCodec {
         int v, r, g, b, a, s, argb;
         int pos=0;
         stride *= bytesPerRow;
-        for (int i=0; i<8; i++) {
+        for (int i=0; i<tileHeight; i++) {
             // do one row of pixels
-            for (int j=0; j<8; j++) {
+            for (int j=0; j<tileWidth; j++) {
 
                 // get decoded pixel
                 argb = pixels[pos++];

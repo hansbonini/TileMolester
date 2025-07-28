@@ -62,14 +62,16 @@ public class CompositeTileCodec extends TileCodec {
     public int[] decode(byte[] bits, int ofs, int stride) {
         // decode the first sub-tile
         int[] tilePixels = codecs[0].decode(bits, ofs, stride);
-        System.arraycopy(tilePixels, 0, pixels, 0, tilePixels.length);
+        int[] pixels = new int[tileWidth * tileHeight];
+        System.arraycopy(tilePixels, 0, pixels, 0, Math.min(tilePixels.length, pixels.length));
         // decode remaining sub-tiles
         int p = codecs[0].getBitsPerPixel();
         for (int i=1; i<codecs.length; i++) {
             ofs += (stride+1) * codecs[i-1].getTileSize();
             tilePixels = codecs[i].decode(bits, ofs, stride);
             // "overlay" the tile
-            for (int j=0; j<64; j++) {
+            int maxPixels = Math.min(pixels.length, tilePixels.length);
+            for (int j=0; j<maxPixels; j++) {
                 pixels[j] |= tilePixels[j] << p;
             }
             p += codecs[i].getBitsPerPixel();
@@ -91,7 +93,7 @@ public class CompositeTileCodec extends TileCodec {
         for (int i=1; i<codecs.length; i++) {
             ofs += (stride+1) * codecs[i-1].getTileSize();
             // shift the tile pixels
-            for (int j=0; j<64; j++) {
+            for (int j=0; j<pixels.length; j++) {
                 pixels[j] >>= p;
             }
             codecs[i].encode(pixels, bits, ofs, stride);

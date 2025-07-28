@@ -46,11 +46,17 @@
 		<planartile id="PL01" bpp="2" planeorder="0,1">
 			<description>2bpp planar</description>
 		</planartile>
+		<planartile id="PL09" bpp="2" planeorder="1,0">
+			<description>2bpp planar reverse</description>
+		</planartile>
 		<planartile id="PL02" bpp="3" planeorder="0,1,2">
 			<description>3bpp planar</description>
 		</planartile>
 		<planartile id="PL03" bpp="4" planeorder="0,1,2,3">
 			<description>4bpp planar</description>
+		</planartile>
+		<planartile id="PL10" bpp="2" planeorder="3,2,1,0">
+			<description>4bpp planar reverse</description>
 		</planartile>
 		<planartile id="PL04" bpp="5" planeorder="0,1,2,3,4">
 			<description>5bpp planar</description>
@@ -69,11 +75,23 @@
 		<compositetile id="CP00" formats="PL00,PL00">
 			<description>2bpp planar, composite</description>
 		</compositetile>
+		<compositetile id="CP07" formats="PL00,PL00,PL00">
+			<description>3bpp planar, composite (3x1bpp)</description>
+		</compositetile>
 		<compositetile id="CP01" formats="PL01,PL00">
 			<description>3bpp planar, composite (2bpp+1bpp)</description>
 		</compositetile>
+		<compositetile id="CP06" formats="PL00,PL01">
+			<description>3bpp planar reverse, composite (2bpp+1bpp)</description>
+		</compositetile>
+		<compositetile id="CP05" formats="PL00,PL00,PL00,PL00">
+			<description>4bpp planar, composite (4x1bpp)</description>
+		</compositetile>
 		<compositetile id="CP02" formats="PL01,PL01">
 			<description>4bpp planar, composite (2x2bpp)</description>
+		</compositetile>
+		<compositetile id="CP04" formats="PL09,PL09">
+			<description>4bpp planar reverse, composite (2x2bpp)</description>
 		</compositetile>
 		<compositetile id="CP03" formats="PL01,PL01,PL01,PL01">
 			<description>8bpp planar, composite (4x2bpp)</description>

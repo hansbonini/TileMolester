@@ -57,9 +57,12 @@ public class ReversibleTileModifyAction extends ReversibleAction {
 
     public void undo() {
         canvas.getView().gotoBookmark(bookmark);
+        int tileWidth = (canvas.getCodec() != null) ? canvas.getCodec().getTileWidth() : 8;
+        int tileHeight = (canvas.getCodec() != null) ? canvas.getCodec().getTileHeight() : 8;
+        int tileSize = tileWidth * tileHeight;
         for (int i=0; i<gridCoords.length; i++) {
             Point p = gridCoords[i];
-            canvas.copyBufferToTilePixels(p.x, p.y, oldPixels, i * 8*8);
+            canvas.copyBufferToTilePixels(p.x, p.y, oldPixels, i * tileSize);
             canvas.packTile(p.x, p.y);
         }
         canvas.redraw();
@@ -67,9 +70,12 @@ public class ReversibleTileModifyAction extends ReversibleAction {
 
     public void redo() {
         canvas.getView().gotoBookmark(bookmark);
+        int tileWidth = (canvas.getCodec() != null) ? canvas.getCodec().getTileWidth() : 8;
+        int tileHeight = (canvas.getCodec() != null) ? canvas.getCodec().getTileHeight() : 8;
+        int tileSize = tileWidth * tileHeight;
         for (int i=0; i<gridCoords.length; i++) {
             Point p = gridCoords[i];
-            canvas.copyBufferToTilePixels(p.x, p.y, newPixels, i * 8*8);
+            canvas.copyBufferToTilePixels(p.x, p.y, newPixels, i * tileSize);
             canvas.packTile(p.x, p.y);
         }
         canvas.redraw();

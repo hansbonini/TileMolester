@@ -20,7 +20,7 @@ package tm.tilecodecs;
 
 /**
 *
-* Abstract class for 8x8 ("atomic") tile codecs.
+* Abstract class for configurable size tile codecs.
 * To add a new tile format, simply extend this class and implement decode() and encode().
 *
 **/
@@ -34,9 +34,11 @@ public abstract class TileCodec {
     private String description;
     protected int[] pixels;     // destination for DEcoded tile data
     protected int bitsPerPixel;
-    protected int bytesPerRow;  // row = 8 pixels
+    protected int bytesPerRow;  // row = tileWidth pixels
     protected long colorCount;
     protected int tileSize;     // size of one encoded tile
+    protected int tileWidth;    // width of tile in pixels
+    protected int tileHeight;   // height of tile in pixels
 
 /**
 *
@@ -47,13 +49,29 @@ public abstract class TileCodec {
 **/
 
     public TileCodec(String id, int bitsPerPixel, String description) {
+        this(id, bitsPerPixel, description, 8, 8);
+    }
+
+/**
+*
+* Constructor with configurable tile dimensions.
+*
+* @param bitsPerPixel   Bits per pixel
+* @param tileWidth      Width of tile in pixels
+* @param tileHeight     Height of tile in pixels
+*
+**/
+
+    public TileCodec(String id, int bitsPerPixel, String description, int tileWidth, int tileHeight) {
         this.id = id;
         this.bitsPerPixel = bitsPerPixel;
         this.description = description;
-        bytesPerRow = bitsPerPixel; // because (bitsPerPixel*8)/8 = bitsPerPixel
-        tileSize = bytesPerRow*8;
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
+        bytesPerRow = (bitsPerPixel * tileWidth + 7) / 8; // round up to nearest byte
+        tileSize = bytesPerRow * tileHeight;
         colorCount = 1 << bitsPerPixel;
-        pixels = new int[8*8];
+        pixels = new int[tileWidth * tileHeight];
     }
 
 /**
@@ -89,12 +107,46 @@ public abstract class TileCodec {
 
 /**
 *
-* Gets the # of bytes per row (8 pixels) for the tile format.
+* Gets the # of bytes per row (tileWidth pixels) for the tile format.
 *
 **/
 
     public int getBytesPerRow() {
         return bytesPerRow;
+    }
+
+/**
+*
+* Gets the width of the tile in pixels.
+*
+**/
+
+    public int getTileWidth() {
+        return tileWidth;
+    }
+
+/**
+*
+* Gets the height of the tile in pixels.
+*
+**/
+
+    public int getTileHeight() {
+        return tileHeight;
+    }
+
+/**
+*
+* Sets the tile dimensions and recalculates dependent values.
+*
+**/
+
+    public void setTileDimensions(int width, int height) {
+        this.tileWidth = width;
+        this.tileHeight = height;
+        bytesPerRow = (bitsPerPixel * tileWidth + 7) / 8; // round up to nearest byte
+        tileSize = bytesPerRow * tileHeight;
+        pixels = new int[tileWidth * tileHeight];
     }
 
 /**

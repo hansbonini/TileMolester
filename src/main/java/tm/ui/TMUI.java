@@ -105,6 +105,7 @@ public class TMUI extends JFrame {
 	private TMStretchDialog stretchDialog;
 	private TMCanvasSizeDialog canvasSizeDialog;
 	private TMBlockSizeDialog blockSizeDialog;
+	private TMTileSizeDialog tileSizeDialog;
 	private TMAddToTreeDialog addBookmarkDialog;
 	private TMAddToTreeDialog addPaletteDialog;
 	private TMOrganizeTreeDialog organizeBookmarksDialog;
@@ -245,6 +246,7 @@ public class TMUI extends JFrame {
 	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem24x24 = new JCheckBoxMenuItem("24x24 pixels");
 	private JCheckBoxMenuItem sizeBlockToCanvasMenuItem32x32 = new JCheckBoxMenuItem("32x32 pixels");
 	private JMenuItem customBlockSizeMenuItem = new JMenuItem("Custom...");
+	private JMenuItem customTileSizeMenuItem = new JMenuItem("Custom Tile Size...");
 	private JRadioButtonMenuItem rowInterleaveBlocksMenuItem = new JRadioButtonMenuItem("Row-interleave Blocks");
 	private JMenu modeMenu = new JMenu("Mode");
 	private JRadioButtonMenuItem _1DimensionalMenuItem = new JRadioButtonMenuItem("1-Dimensional");
@@ -500,6 +502,7 @@ public class TMUI extends JFrame {
 		stretchDialog = new TMStretchDialog(this, xl);
 		canvasSizeDialog = new TMCanvasSizeDialog(this, xl);
 		blockSizeDialog = new TMBlockSizeDialog(this, xl);
+		tileSizeDialog = new TMTileSizeDialog(this, xl);
 		addBookmarkDialog = new TMAddToTreeDialog(this, "Add_To_Bookmarks_Dialog_Title", xl);
 		addPaletteDialog = new TMAddToTreeDialog(this, "Add_To_Palettes_Dialog_Title", xl);
 		organizeBookmarksDialog = new TMOrganizeTreeDialog(this, "Organize_Bookmarks_Dialog_Title", xl);
@@ -1480,6 +1483,15 @@ public class TMUI extends JFrame {
 				});
 		blockSizeMenu.add(customBlockSizeMenuItem);
 		viewMenu.add(blockSizeMenu);
+		// Custom Tile Size
+		customTileSizeMenuItem.setText(xlate("Custom_Tile_Size"));
+		customTileSizeMenuItem.addActionListener(
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						doCustomTileSizeCommand();
+					}
+				});
+		viewMenu.add(customTileSizeMenuItem);
 		// Row-interleave Blocks
 		rowInterleaveBlocksMenuItem.setMnemonic(KeyEvent.VK_R);
 		rowInterleaveBlocksMenuItem.addActionListener(
@@ -2999,6 +3011,34 @@ public class TMUI extends JFrame {
 				view.setSizeBlockToCanvas(false);
 				sizeBlockToCanvasMenuItem.setSelected(false);
 				view.setBlockDimensions(blockSizeDialog.getCols(), blockSizeDialog.getRows());
+			}
+		}
+	}
+
+	/**
+	*
+	* Handles menu command "Custom Tile Size".
+	*
+	**/
+	public void doCustomTileSizeCommand() {
+		TMView view = getSelectedView();
+		if (view != null) {
+			TileCodec codec = view.getTileCodec();
+			if (codec != null) {
+				int currentWidth = codec.getTileWidth();
+				int currentHeight = codec.getTileHeight();
+				int retVal = tileSizeDialog.showDialog(currentWidth, currentHeight);
+				if (retVal == JOptionPane.OK_OPTION) {
+					int newWidth = tileSizeDialog.getTileWidth();
+					int newHeight = tileSizeDialog.getTileHeight();
+					codec.setTileDimensions(newWidth, newHeight);
+					// Redimensionar o canvas para acomodar os novos tamanhos de tile
+					TMTileCanvas canvas = view.getEditorCanvas();
+					canvas.setGridSize(canvas.getCols(), canvas.getRows());
+					// Limpar e redecodificar os pixels com as novas dimensões
+					canvas.unpackPixels();
+					view.repaint();
+				}
 			}
 		}
 	}

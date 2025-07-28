@@ -110,7 +110,9 @@ public class TMView extends JInternalFrame {
 
 		addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
-				slider.setSize(slider.getWidth(), editorCanvas.getHeight());
+				if (editorCanvas != null) {
+					slider.setSize(slider.getWidth(), editorCanvas.getHeight());
+				}
 				// slider.setSize(slider.getWidth(),
 				// getHeight()-((BasicInternalFrameUI)getUI()).getNorthPane().getHeight());
 			}

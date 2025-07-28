@@ -71,9 +71,11 @@ public class TMSelectionCanvas extends TMTileCanvas implements MouseInputListene
         }
 
         // copy pixels
-        for (int i=0; i<h*8; i++) {
-            for (int j=0; j<w*8; j++) {
-                setPixel(j, i, canvas.getPixel(j+x1*8, i+y1*8));
+        int tileWidth = (canvas.getCodec() != null) ? canvas.getCodec().getTileWidth() : 8;
+        int tileHeight = (canvas.getCodec() != null) ? canvas.getCodec().getTileHeight() : 8;
+        for (int i=0; i<h*tileHeight; i++) {
+            for (int j=0; j<w*tileWidth; j++) {
+                setPixel(j, i, canvas.getPixel(j+x1*tileWidth, i+y1*tileHeight));
             }
         }
 

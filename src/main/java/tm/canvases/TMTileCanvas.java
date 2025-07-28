@@ -34,7 +34,7 @@ public class TMTileCanvas extends TMPixelCanvas {
 
     protected int mode=TileCodec.MODE_1D;
 
-    protected int[] pixdata = new int[8*8];
+    protected int[] pixdata = new int[8*8]; // will be resized based on tile dimensions
 
     protected int cols=0;
     protected int rows=0;
@@ -61,11 +61,11 @@ public class TMTileCanvas extends TMPixelCanvas {
 *
 * Creates a tile pane of the specified size, and with <code>bits</code>
 * as the encoded tile data source.
-* Doesn't work quite right?
+* Uses default 8x8 tiles if codec is not set.
 **/
 
     public TMTileCanvas(byte[] bits, int cols, int rows) {
-        super(bits, cols*8, rows*8);
+        super(bits, cols * 8, rows * 8);  // default 8x8 tiles
         this.cols = cols;
         this.rows = rows;
     }
@@ -98,7 +98,32 @@ public class TMTileCanvas extends TMPixelCanvas {
 **/
 
     public void setCodec(TileCodec codec) {
+        // Preserve current tile dimensions when switching codecs
+        if (this.codec != null) {
+            codec.setTileDimensions(this.codec.getTileWidth(), this.codec.getTileHeight());
+        }
         this.codec = codec;
+        updatePixdataSize();
+    }
+
+/**
+*
+* Updates the pixdata array size based on current tile dimensions.
+*
+**/
+
+    private void updatePixdataSize() {
+        if (codec != null) {
+            int tileSize = codec.getTileWidth() * codec.getTileHeight();
+            if (tileSize > 0 && (pixdata == null || pixdata.length != tileSize)) {
+                pixdata = new int[tileSize];
+            }
+        } else {
+            // Default to 8x8 if no codec is set
+            if (pixdata == null || pixdata.length != 64) {
+                pixdata = new int[64];
+            }
+        }
     }
 
 /**
@@ -158,9 +183,13 @@ public class TMTileCanvas extends TMPixelCanvas {
 **/
 
     public void setGridSize(int cols, int rows) {
-        setCanvasSize(cols*8, rows*8);
+        int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+        int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
+        setCanvasSize(cols * tileWidth, rows * tileHeight);
         this.cols = cols;
         this.rows = rows;
+        // Ensure pixdata array is properly sized
+        updatePixdataSize();
     }
 
 /**
@@ -175,27 +204,42 @@ public class TMTileCanvas extends TMPixelCanvas {
         // encode single atomic tile
         bitsOfs = getTileBitsOffset(x, y);
         if (bitsOfs >= 0) {
+            // Ensure pixdata array is properly sized
+            updatePixdataSize();
+            
+            int tileWidth = codec.getTileWidth();
+            int tileHeight = codec.getTileHeight();
             // copy pixels
-            pixOfs = (y * 8 * canvasWidth) + (x * 8);
+            pixOfs = (y * tileHeight * canvasWidth) + (x * tileWidth);
             pos = 0;
             if (codec.getBitsPerPixel() <= 8) {
                 int colorCount = codec.getColorCount();
                 int colorIndex = palIndex * colorCount;
                 // map RGB values to palette indices
-                for (int p=0; p<8; p++) {
-                    for (int q=0; q<8; q++) {
-                        pixdata[pos++] = palette.indexOf(colorIndex, pixels[pixOfs++]);
+                for (int p=0; p<tileHeight; p++) {
+                    for (int q=0; q<tileWidth; q++) {
+                        if (pos < pixdata.length && pixOfs < pixels.length) {
+                            pixdata[pos++] = palette.indexOf(colorIndex, pixels[pixOfs++]);
+                        } else {
+                            pos++;
+                            pixOfs++;
+                        }
                     }
-                    pixOfs += canvasWidth - 8;
+                    pixOfs += canvasWidth - tileWidth;
                 }
             }
             else {
                 // non-palettized: color is actual 32-bit ARGB value
-                for (int p=0; p<8; p++) {
-                    for (int q=0; q<8; q++) {
-                        pixdata[pos++] = pixels[pixOfs++];
+                for (int p=0; p<tileHeight; p++) {
+                    for (int q=0; q<tileWidth; q++) {
+                        if (pos < pixdata.length && pixOfs < pixels.length) {
+                            pixdata[pos++] = pixels[pixOfs++];
+                        } else {
+                            pos++;
+                            pixOfs++;
+                        }
                     }
-                    pixOfs += canvasWidth - 8;
+                    pixOfs += canvasWidth - tileWidth;
                 }
             }
             codec.encode(pixdata, bits, bitsOfs, getStride());
@@ -233,12 +277,18 @@ public class TMTileCanvas extends TMPixelCanvas {
 
     public void unpackPixels() {
         if (codec == null) return;
+        
+        // Ensure pixdata array is properly sized
+        updatePixdataSize();
+        
         int[] decodedTile;
         int pixOfs = 0;
         int bitsOfs, tileOfs, pos;
         int colorIndex = palIndex * codec.getColorCount(); // only valid for palettized codecs
         int bpp = codec.getBitsPerPixel();
         int stride = getStride();
+        int tileWidth = codec.getTileWidth();
+        int tileHeight = codec.getTileHeight();
         // render grid of atomic tiles
         for (int i=0; i<rows; i++) {
             for (int j=0; j<cols; j++) {
@@ -250,36 +300,59 @@ public class TMTileCanvas extends TMPixelCanvas {
                     pos = 0;
                     if ((bpp <= 8) && (palette != null)) {
                         // map palette indices to RGB values
-                        for (int p=0; p<8; p++) {
-                            for (int q=0; q<8; q++) {
-                                pixels[tileOfs++] = palette.getEntryRGB(colorIndex + decodedTile[pos++]);
+                        for (int p=0; p<tileHeight; p++) {
+                            for (int q=0; q<tileWidth; q++) {
+                                if (tileOfs < pixels.length && pos < decodedTile.length) {
+                                    pixels[tileOfs++] = palette.getEntryRGB(colorIndex + decodedTile[pos++]);
+                                } else {
+                                    // Se não há dados suficientes, use cor transparente/background
+                                    if (tileOfs < pixels.length) {
+                                        pixels[tileOfs] = 0xFF000000; // Preto transparente como fallback
+                                    }
+                                    tileOfs++;
+                                    pos++;
+                                }
                             }
-                            tileOfs += canvasWidth - 8;
+                            tileOfs += canvasWidth - tileWidth;
                         }
                     }
                     else {
                         // non-palettized: color is actual 32-bit ARGB value
-                        for (int p=0; p<8; p++) {
-                            for (int q=0; q<8; q++) {
-                                pixels[tileOfs++] = decodedTile[pos++];
+                        for (int p=0; p<tileHeight; p++) {
+                            for (int q=0; q<tileWidth; q++) {
+                                if (tileOfs < pixels.length && pos < decodedTile.length) {
+                                    pixels[tileOfs++] = decodedTile[pos++];
+                                } else {
+                                    // Se não há dados suficientes, use cor transparente/background
+                                    if (tileOfs < pixels.length) {
+                                        pixels[tileOfs] = 0xFF000000; // Preto transparente como fallback
+                                    }
+                                    tileOfs++;
+                                    pos++;
+                                }
                             }
-                            tileOfs += canvasWidth - 8;
+                            tileOfs += canvasWidth - tileWidth;
                         }
                     }
                 }
                 else {
                     // not valid tile, fill with gray pixels
                     tileOfs = pixOfs;
-                    for (int p=0; p<8; p++) {
-                        for (int q=0; q<8; q++) {
-                            pixels[tileOfs++] = 0x7F7F7F;
+                    for (int p=0; p<tileHeight; p++) {
+                        for (int q=0; q<tileWidth; q++) {
+                            if (tileOfs < pixels.length) {
+                                pixels[tileOfs++] = 0x7F7F7F;
+                            } else {
+                                tileOfs++;
+                            }
                         }
-                        tileOfs += canvasWidth - 8;
+                        tileOfs += canvasWidth - tileWidth;
                     }
                 }
-                pixOfs += 8;    // next tile column
+                pixOfs += tileWidth;    // next tile column
             }
-            pixOfs += canvasWidth*7;    // next tile row
+            // Move to the next row of tiles - go back to start of row and move down by tile height
+            pixOfs = (i + 1) * tileHeight * canvasWidth;
         }
         source.newPixels();
     }
@@ -292,12 +365,18 @@ public class TMTileCanvas extends TMPixelCanvas {
 
     public void packPixels() {
         if (codec == null) return;
+        
+        // Ensure pixdata array is properly sized
+        updatePixdataSize();
+        
         int pixOfs = 0;
         int bitsOfs, tileOfs, pos;
         int colorCount = codec.getColorCount();    // only valid for palettized codecs
         int colorIndex = palIndex * colorCount;
         int bpp = codec.getBitsPerPixel();
         int stride = getStride();
+        int tileWidth = codec.getTileWidth();
+        int tileHeight = codec.getTileHeight();
         // encode grid of atomic tiles
         for (int i=0; i<rows; i++) {
             for (int j=0; j<cols; j++) {
@@ -308,20 +387,30 @@ public class TMTileCanvas extends TMPixelCanvas {
                     pos = 0;
                     if ((bpp <= 8) && (palette != null)) {
                         // map RGB values to palette indices
-                        for (int p=0; p<8; p++) {
-                            for (int q=0; q<8; q++) {
-                                pixdata[pos++] = palette.indexOf(colorIndex, pixels[tileOfs++]);
+                        for (int p=0; p<tileHeight; p++) {
+                            for (int q=0; q<tileWidth; q++) {
+                                if (pos < pixdata.length && tileOfs < pixels.length) {
+                                    pixdata[pos++] = palette.indexOf(colorIndex, pixels[tileOfs++]);
+                                } else {
+                                    pos++;
+                                    tileOfs++;
+                                }
                             }
-                            tileOfs += canvasWidth - 8;
+                            tileOfs += canvasWidth - tileWidth;
                         }
                     }
                     else {
                         // non-palettized: color is actual 32-bit ARGB value
-                        for (int p=0; p<8; p++) {
-                            for (int q=0; q<8; q++) {
-                                pixdata[pos++] = pixels[tileOfs++];
+                        for (int p=0; p<tileHeight; p++) {
+                            for (int q=0; q<tileWidth; q++) {
+                                if (pos < pixdata.length && tileOfs < pixels.length) {
+                                    pixdata[pos++] = pixels[tileOfs++];
+                                } else {
+                                    pos++;
+                                    tileOfs++;
+                                }
                             }
-                            tileOfs += canvasWidth - 8;
+                            tileOfs += canvasWidth - tileWidth;
                         }
                     }
                     codec.encode(pixdata, bits, bitsOfs, stride);
@@ -329,9 +418,10 @@ public class TMTileCanvas extends TMPixelCanvas {
                 else {
                     // not valid tile, do nothing
                 }
-                pixOfs += 8;    // next tile column
+                pixOfs += tileWidth;    // next tile column
             }
-            pixOfs += canvasWidth*7;    // next tile row
+            // Move to the next row of tiles - go back to start of row and move down by tile height
+            pixOfs = (i + 1) * tileHeight * canvasWidth;
         }
     }
 
@@ -356,25 +446,30 @@ public class TMTileCanvas extends TMPixelCanvas {
 **/
 
     private void drawTileGrid(Graphics g) {
+        if (codec == null) return;
         g.setColor(Color.red);     // gridline color
+        int tileWidth = codec.getTileWidth();
+        int tileHeight = codec.getTileHeight();
         // draw horizontal lines
         for (int i=1; i<rows; i++) {
-            g.fillRect(0, (int)(i*scale*8), getWidth(), 1);
+            g.fillRect(0, (int)(i*scale*tileHeight), getWidth(), 1);
         }
         // draw vertical lines
         for (int i=1; i<cols; i++) {
-            g.fillRect((int)(i*scale*8), 0, 1, getHeight());
+            g.fillRect((int)(i*scale*tileWidth), 0, 1, getHeight());
         }
     }
 
 /**
 *
-* Gets the length of a side (in pixels) in an 8x8 tile, subject to the current scaling.
+* Gets the length of a side (in pixels) in a tile, subject to the current scaling.
+* Returns width dimension for tiles (could be extended to return both width and height).
 *
 **/
 
     public int getScaledTileDim() {
-        return (int)(scale*8);
+        int tileWidth = (codec != null) ? codec.getTileWidth() : 8;
+        return (int)(scale * tileWidth);
     }
 
 /**
@@ -570,7 +665,8 @@ public class TMTileCanvas extends TMPixelCanvas {
 **/
 
     public void copyTile(byte[] from, byte[] to, int offsetFrom, int offsetTo, int strideFrom, int strideTo, int bytesPerRow) {
-        for (int i=0; i<8; i++) {
+        int tileHeight = (codec != null) ? codec.getTileHeight() : 8;
+        for (int i=0; i<tileHeight; i++) {
             // copy one row
             for (int j=0; j<bytesPerRow; j++) {
                 to[offsetTo++] = from[offsetFrom++];

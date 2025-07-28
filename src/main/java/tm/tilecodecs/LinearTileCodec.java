@@ -122,16 +122,21 @@ public class LinearTileCodec extends TileCodec {
 **/
 
     public int[] decode(byte[] bits, int ofs, int stride) {
+        int[] pixels = new int[tileWidth * tileHeight];
         int pos=0;
         stride *= bytesPerRow;
-        for (int i=0; i<8; i++) {
+        for (int i=0; i<tileHeight; i++) {
             // do one row
+            int pixelsInRow = 0;
             for (int k=0; k<bytesPerRow; k++) {
                 // do one byte
                 int b = bits[ofs++] & 0xFF; // TODO: rowbyteoffset[k]
                 for (int m = startPixel; m != boundary; m += step) {
-                    // decode one pixel
-                    pixels[pos++] = (b >> bitsPerPixel*m) & pixelMask;
+                    // decode one pixel, but don't exceed tile width
+                    if (pixelsInRow < tileWidth && pos < pixels.length) {
+                        pixels[pos++] = (b >> bitsPerPixel*m) & pixelMask;
+                        pixelsInRow++;
+                    }
                 }
             }
             ofs += stride;
@@ -148,14 +153,18 @@ public class LinearTileCodec extends TileCodec {
     public void encode(int[] pixels, byte[] bits, int ofs, int stride) {
         int pos = 0;
         stride *= bytesPerRow;
-        for (int i=0; i<8; i++) {
+        for (int i=0; i<tileHeight; i++) {
             // do one row
+            int pixelsInRow = 0;
             for (int k=0; k<bytesPerRow; k++) {
                 // do one byte
                 byte b = 0;
                 for (int m = startPixel; m != boundary; m += step) {
-                    // encode one pixel
-                    b |= (pixels[pos++] & pixelMask) << (m*bitsPerPixel);
+                    // encode one pixel, but don't exceed tile width or pixels array
+                    if (pixelsInRow < tileWidth && pos < pixels.length) {
+                        b |= (pixels[pos++] & pixelMask) << (m*bitsPerPixel);
+                        pixelsInRow++;
+                    }
                 }
                 bits[ofs++] = b;    // TODO: rowbyteoffset[k]
             }
