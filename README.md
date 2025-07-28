@@ -7,6 +7,17 @@ It was originally developed SnowBro and later improved by Central MiB and Lab313
 
 ## Changelog
 
+### v0.23 (by hansbonini a.k.a Anime_World)
+- Add swizzle modes for texture visualizations as tile
+- Fix Block Dimensions setting up canvas dimensions, now they work individually.
+
+### v0.22 (by hansbonini a.k.a Anime_World)
+- Add support for Mesen and Exodus CRAM Dump as Palette
+- Add new codecs for visualization
+- Add support for custom tile dimensions
+- Add easy block size configuration
+- Add statusbar configuration for tile and block dimensions
+
 ### v0.21 (by toruzz)
 - New themes. Old custom system removed
 - Fractional scale support
