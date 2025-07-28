@@ -76,7 +76,7 @@ public class TMUI extends JFrame {
 
 	// UI components
 	private mxScrollableDesktop desktop = new mxScrollableDesktop();
-	private TMStatusBar statusBar = new TMStatusBar();
+	private TMStatusBar statusBar;
 	private JToolBar toolBar = new JToolBar(JToolBar.HORIZONTAL);
 	private JToolBar toolBarMDI = new JToolBar(JToolBar.HORIZONTAL);
 	private JToolBar toolPalette = new JToolBar(JToolBar.VERTICAL);
@@ -513,6 +513,9 @@ public class TMUI extends JFrame {
 
 		newPaletteDialog.setCodecs(colorcodecs);
 		importInternalPaletteDialog.setCodecs(colorcodecs);
+
+		// Initialize status bar with reference to this TMUI instance
+		statusBar = new TMStatusBar(this);
 
 		// Set up the GUI.
 		// main contentpane
@@ -3038,8 +3041,47 @@ public class TMUI extends JFrame {
 					// Limpar e redecodificar os pixels com as novas dimensões
 					canvas.unpackPixels();
 					view.repaint();
+					// Update status bar display
+					statusBar.setTileSize(newWidth, newHeight);
 				}
 			}
+		}
+	}
+
+	/**
+	*
+	* Sets tile size directly (called from status bar spinners).
+	*
+	**/
+	
+	public void setTileSize(int width, int height) {
+		TMView view = getSelectedView();
+		if (view != null) {
+			TileCodec codec = view.getTileCodec();
+			if (codec != null) {
+				codec.setTileDimensions(width, height);
+				// Redimensionar o canvas para acomodar os novos tamanhos de tile
+				TMTileCanvas canvas = view.getEditorCanvas();
+				canvas.setGridSize(canvas.getCols(), canvas.getRows());
+				// Limpar e redecodificar os pixels com as novas dimensões
+				canvas.unpackPixels();
+				view.repaint();
+			}
+		}
+	}
+
+	/**
+	*
+	* Sets block size directly (called from status bar spinners).
+	*
+	**/
+	
+	public void setBlockSize(int width, int height) {
+		TMView view = getSelectedView();
+		if (view != null) {
+			view.setBlockDimensions(width, height);
+			// Update status bar display
+			statusBar.setBlockSize(width, height);
 		}
 	}
 
@@ -4497,6 +4539,11 @@ public class TMUI extends JFrame {
 		TMView view = getSelectedView();
 		if (view != null) {
 			statusBar.viewSelected(view);
+			// Update tile size spinners
+			TileCodec codec = view.getTileCodec();
+			if (codec != null) {
+				statusBar.setTileSize(codec.getTileWidth(), codec.getTileHeight());
+			}
 		}
 	}
 

@@ -41,6 +41,18 @@ public class TMStatusBar extends JPanel {
     private JLabel modeLabel = new JLabel(" ");
     private JLabel tilesLabel = new JLabel(" ");
     private JLabel messageLabel = new JLabel(" ");
+    
+    // Tile size controls
+    private JLabel tileSizeLabel = new JLabel("Tile Size:");
+    private JSpinner tileWidthSpinner;
+    private JSpinner tileHeightSpinner;
+    
+    // Block size controls
+    private JLabel blockSizeLabel = new JLabel("Block Size:");
+    private JSpinner blockWidthSpinner;
+    private JSpinner blockHeightSpinner;
+    
+    private TMUI parentUI;
 
 /**
 *
@@ -48,8 +60,10 @@ public class TMStatusBar extends JPanel {
 *
 **/
 
-    public TMStatusBar() {
+    public TMStatusBar(TMUI parentUI) {
         super();
+        this.parentUI = parentUI;
+        
         JPanel p1 = new JPanel();
         p1.setLayout(new GridLayout(1, 3));
         p1.add(messageLabel);
@@ -65,11 +79,60 @@ public class TMStatusBar extends JPanel {
         p3.setLayout(new GridLayout(1, 2));
         p3.add(modeLabel);
         p3.add(tilesLabel);
+        
+        // Only add tile size controls if parentUI is provided
+        if (parentUI != null) {
+            // Initialize tile size spinners
+            tileWidthSpinner = new JSpinner(new SpinnerNumberModel(8, 1, 256, 1));
+            tileHeightSpinner = new JSpinner(new SpinnerNumberModel(8, 1, 256, 1));
+            
+            // Initialize block size spinners
+            blockWidthSpinner = new JSpinner(new SpinnerNumberModel(16, 1, 256, 1));
+            blockHeightSpinner = new JSpinner(new SpinnerNumberModel(16, 1, 256, 1));
+            
+            // Set preferred size for spinners
+            Dimension spinnerSize = new Dimension(50, 20);
+            tileWidthSpinner.setPreferredSize(spinnerSize);
+            tileHeightSpinner.setPreferredSize(spinnerSize);
+            blockWidthSpinner.setPreferredSize(spinnerSize);
+            blockHeightSpinner.setPreferredSize(spinnerSize);
+            
+            // Add change listeners to spinners
+            tileWidthSpinner.addChangeListener(e -> updateTileSize());
+            tileHeightSpinner.addChangeListener(e -> updateTileSize());
+            blockWidthSpinner.addChangeListener(e -> updateBlockSize());
+            blockHeightSpinner.addChangeListener(e -> updateBlockSize());
+            
+            // Create tile size panel
+            JPanel p4 = new JPanel();
+            p4.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+            p4.add(tileSizeLabel);
+            p4.add(new JLabel("W:"));
+            p4.add(tileWidthSpinner);
+            p4.add(new JLabel("H:"));
+            p4.add(tileHeightSpinner);
+            
+            // Create block size panel
+            JPanel p5 = new JPanel();
+            p5.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+            p5.add(blockSizeLabel);
+            p5.add(new JLabel("W:"));
+            p5.add(blockWidthSpinner);
+            p5.add(new JLabel("H:"));
+            p5.add(blockHeightSpinner);
 
-        setLayout(new GridLayout(1, 4));
-        add(p1);
-        add(p2);
-        add(p3);
+            setLayout(new GridLayout(1, 6));
+            add(p1);
+            add(p2);
+            add(p3);
+            add(p4);
+            add(p5);
+        } else {
+            setLayout(new GridLayout(1, 4));
+            add(p1);
+            add(p2);
+            add(p3);
+        }
 //        pane.add(new JLabel("    "));   // just some whitespace
 
         //offsetLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
@@ -78,6 +141,70 @@ public class TMStatusBar extends JPanel {
         //codecLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         //modeLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         //tilesLabel.setBorder(new BevelBorder(BevelBorder.LOWERED));
+    }
+
+/**
+*
+* Creates the status bar (legacy constructor for backward compatibility).
+*
+**/
+
+    public TMStatusBar() {
+        this(null);
+    }
+
+/**
+*
+* Updates tile size when spinner values change.
+*
+**/
+
+    private void updateTileSize() {
+        if (parentUI != null) {
+            int width = (Integer) tileWidthSpinner.getValue();
+            int height = (Integer) tileHeightSpinner.getValue();
+            parentUI.setTileSize(width, height);
+        }
+    }
+
+/**
+*
+* Updates block size when spinner values change.
+*
+**/
+
+    private void updateBlockSize() {
+        if (parentUI != null) {
+            int width = (Integer) blockWidthSpinner.getValue();
+            int height = (Integer) blockHeightSpinner.getValue();
+            parentUI.setBlockSize(width, height);
+        }
+    }
+
+/**
+*
+* Updates the tile size spinners to reflect current tile dimensions.
+*
+**/
+
+    public void setTileSize(int width, int height) {
+        if (tileWidthSpinner != null && tileHeightSpinner != null) {
+            tileWidthSpinner.setValue(width);
+            tileHeightSpinner.setValue(height);
+        }
+    }
+
+/**
+*
+* Updates the block size spinners to reflect current block dimensions.
+*
+**/
+
+    public void setBlockSize(int width, int height) {
+        if (blockWidthSpinner != null && blockHeightSpinner != null) {
+            blockWidthSpinner.setValue(width);
+            blockHeightSpinner.setValue(height);
+        }
     }
 
 /**
@@ -197,6 +324,8 @@ public class TMStatusBar extends JPanel {
         }
         if (view.getTileCodec() != null) {
             setCodec(view.getTileCodec().getDescription());
+            // Update tile size spinners
+            setTileSize(view.getTileCodec().getTileWidth(), view.getTileCodec().getTileHeight());
         }
         else {
             setCodec("");
@@ -204,6 +333,9 @@ public class TMStatusBar extends JPanel {
         setPalOffset(view.getPalette().getOffset());
         setMode(view.getMode());
         setTiles(view.getCols(), view.getRows());
+        
+        // Update block size spinners
+        setBlockSize(view.getBlockWidth(), view.getBlockHeight());
     }
 
 /**
