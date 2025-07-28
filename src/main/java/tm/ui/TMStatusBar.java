@@ -183,6 +183,7 @@ public class TMStatusBar extends JPanel {
 
     private void updateBlockSize() {
         if (parentUI != null) {
+            // Block dimensions are always independent of canvas size
             int width = (Integer) blockWidthSpinner.getValue();
             int height = (Integer) blockHeightSpinner.getValue();
             parentUI.setBlockSize(width, height);
@@ -210,22 +211,41 @@ public class TMStatusBar extends JPanel {
 
     public void setBlockSize(int width, int height) {
         if (blockWidthSpinner != null && blockHeightSpinner != null) {
+            // Temporarily remove listeners to avoid triggering updates
+            ChangeListener[] widthListeners = blockWidthSpinner.getChangeListeners();
+            ChangeListener[] heightListeners = blockHeightSpinner.getChangeListeners();
+            
+            for (ChangeListener listener : widthListeners) {
+                blockWidthSpinner.removeChangeListener(listener);
+            }
+            for (ChangeListener listener : heightListeners) {
+                blockHeightSpinner.removeChangeListener(listener);
+            }
+            
+            // Update values
             blockWidthSpinner.setValue(width);
             blockHeightSpinner.setValue(height);
+            
+            // Restore listeners
+            for (ChangeListener listener : widthListeners) {
+                blockWidthSpinner.addChangeListener(listener);
+            }
+            for (ChangeListener listener : heightListeners) {
+                blockHeightSpinner.addChangeListener(listener);
+            }
         }
     }
     
     /**
-     * Updates the block size label to show Full Canvas mode status.
+     * Updates the block size label to show that block dimensions are always independent.
      */
     public void updateBlockSizeLabel(boolean isFullCanvas) {
-        if (isFullCanvas) {
-            blockSizeLabel.setText("Block Size (Full Canvas):");
-            blockSizeLabel.setToolTipText("Block dimensions automatically match canvas size");
-        } else {
-            blockSizeLabel.setText("Block Size:");
-            blockSizeLabel.setToolTipText("Block dimensions are independent of canvas size");
-        }
+        // Block dimensions are always independent of canvas size
+        blockSizeLabel.setText("Block Size:");
+        blockSizeLabel.setToolTipText("Block dimensions are independent of canvas size");
+        // Always enable spinners since block size is always independent
+        if (blockWidthSpinner != null) blockWidthSpinner.setEnabled(true);
+        if (blockHeightSpinner != null) blockHeightSpinner.setEnabled(true);
     }
 
 /**
