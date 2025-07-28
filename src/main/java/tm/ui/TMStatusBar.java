@@ -396,7 +396,7 @@ public class TMStatusBar extends JPanel {
 			swizzleLabel.setText("None");
 		} else if (tm.tilecodecs.TileCodec.SWIZZLE_CUSTOM.equals(swizzlePattern) && codec != null) {
 			String mortonText = codec.getCustomMortonOrder() ? "Morton" : "Linear";
-			swizzleLabel.setText(String.format("Custom %dx%d %s", 
+			swizzleLabel.setText(String.format("Custom... %dx%d %s", 
 				codec.getCustomBlockWidth(), codec.getCustomBlockHeight(), mortonText));
 		} else {
 			// For predefined patterns, just show the pattern name
@@ -406,15 +406,16 @@ public class TMStatusBar extends JPanel {
 
 	/**
 	 * Gets a user-friendly display name for a swizzle pattern.
+	 * Names match those used in the menu system for consistency.
 	 */
 	private String getSwizzleDisplayName(String pattern) {
 		switch (pattern) {
-			case tm.tilecodecs.TileCodec.SWIZZLE_BC: return "BC";
-			case tm.tilecodecs.TileCodec.SWIZZLE_PSP: return "PSP";
-			case tm.tilecodecs.TileCodec.SWIZZLE_NDS: return "NDS";
-			case tm.tilecodecs.TileCodec.SWIZZLE_3DS: return "3DS";
-			case tm.tilecodecs.TileCodec.SWIZZLE_WII: return "WII";
-			case tm.tilecodecs.TileCodec.SWIZZLE_SWITCH: return "SWITCH";
+			case tm.tilecodecs.TileCodec.SWIZZLE_BC: return "BC Texture";
+			case tm.tilecodecs.TileCodec.SWIZZLE_PSP: return "PlayStation Portable";
+			case tm.tilecodecs.TileCodec.SWIZZLE_NDS: return "Nintendo DS";
+			case tm.tilecodecs.TileCodec.SWIZZLE_3DS: return "Nintendo 3DS";
+			case tm.tilecodecs.TileCodec.SWIZZLE_WII: return "Nintendo Wii";
+			case tm.tilecodecs.TileCodec.SWIZZLE_SWITCH: return "Nintendo Switch";
 			default: return pattern != null ? pattern : "None";
 		}
 	}
