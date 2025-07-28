@@ -3142,6 +3142,7 @@ public class TMUI extends JFrame {
 	/**
 	*
 	* Sets block size directly (called from status bar spinners).
+	* Block dimensions are always independent of canvas size.
 	*
 	**/
 	

@@ -392,8 +392,7 @@ public class TMView extends JInternalFrame {
 	 *
 	 * Sets the size of the tile grid.
 	 * 
-	 * Note: When "Full Canvas" block sizing is enabled, changing canvas dimensions
-	 * will also update block dimensions to match the canvas size.
+	 * Block dimensions are always independent of canvas size.
 	 *
 	 **/
 
@@ -407,9 +406,7 @@ public class TMView extends JInternalFrame {
 		else if (rows > 1024)
 			rows = 1024;
 		editorCanvas.setGridSize(cols, rows);
-		if (sizeBlockToCanvas) {
-			editorCanvas.setBlockDimensions(cols, rows);
-		}
+		// Block dimensions are always independent of canvas size
 		updateSlider();
 		editorCanvas.unpackPixels();
 		setScale(getScale());
