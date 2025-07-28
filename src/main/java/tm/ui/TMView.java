@@ -391,6 +391,9 @@ public class TMView extends JInternalFrame {
 	/**
 	 *
 	 * Sets the size of the tile grid.
+	 * 
+	 * Note: When "Full Canvas" block sizing is enabled, changing canvas dimensions
+	 * will also update block dimensions to match the canvas size.
 	 *
 	 **/
 
@@ -810,6 +813,7 @@ public class TMView extends JInternalFrame {
 		editorCanvas.setBlockDimensions(bookmark.getBlockWidth(), bookmark.getBlockHeight());
 		sizeBlockToCanvas = bookmark.getSizeBlockToCanvas();
 		editorCanvas.setRowInterleaveBlocks(bookmark.getRowInterleaved());
+		editorCanvas.setSwizzlePattern(bookmark.getSwizzlePattern());
 		editorCanvas.setMode(bookmark.getMode());
 		setAbsoluteOffset(bookmark.getOffset());
 		// editorCanvas.setPalette(
@@ -839,6 +843,7 @@ public class TMView extends JInternalFrame {
 				getMode(),
 				getPalIndex(),
 				getTileCodec(),
+				getSwizzlePattern(),
 				description);
 	}
 
@@ -955,20 +960,20 @@ public class TMView extends JInternalFrame {
 	}
 
 	/**
-	 *
-	 * Gets whether blocks should be row-interleaved.
-	 *
-	 **/
+	*
+	* Gets whether blocks should be row-interleaved.
+	*
+	**/
 
 	public boolean getRowInterleaveBlocks() {
 		return editorCanvas.getRowInterleaveBlocks();
 	}
 
 	/**
-	 *
-	 * Sets whether blocks should be row-interleaved.
-	 *
-	 **/
+	*
+	* Sets whether blocks should be row-interleaved.
+	*
+	**/
 
 	public void setRowInterleaveBlocks(boolean rowInterleaved) {
 		editorCanvas.setRowInterleaveBlocks(rowInterleaved);
@@ -977,6 +982,26 @@ public class TMView extends JInternalFrame {
 	}
 
 	/**
+	*
+	* Gets the current swizzle pattern.
+	*
+	**/
+
+	public String getSwizzlePattern() {
+		return editorCanvas.getSwizzlePattern();
+	}
+
+	/**
+	*
+	* Sets the swizzle pattern for tile rendering.
+	*
+	**/
+
+	public void setSwizzlePattern(String swizzlePattern) {
+		editorCanvas.setSwizzlePattern(swizzlePattern);
+		editorCanvas.unpackPixels();
+		editorCanvas.repaint();
+	}	/**
 	 *
 	 * Sets whether the block size should follow the canvas size.
 	 *

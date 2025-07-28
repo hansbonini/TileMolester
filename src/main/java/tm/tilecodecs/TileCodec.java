@@ -30,6 +30,16 @@ public abstract class TileCodec {
     public static final int MODE_1D=1;
     public static final int MODE_2D=2;
 
+    // Swizzle pattern constants
+    public static final String SWIZZLE_NONE = "None";
+    public static final String SWIZZLE_BC = "BC";
+    public static final String SWIZZLE_PSP = "PSP";
+    public static final String SWIZZLE_NDS = "NDS";
+    public static final String SWIZZLE_3DS = "3DS";
+    public static final String SWIZZLE_WII = "WII";
+    public static final String SWIZZLE_SWITCH = "SWITCH";
+    public static final String SWIZZLE_CUSTOM = "Custom";
+
     private String id;
     private String description;
     protected int[] pixels;     // destination for DEcoded tile data
@@ -39,6 +49,12 @@ public abstract class TileCodec {
     protected int tileSize;     // size of one encoded tile
     protected int tileWidth;    // width of tile in pixels
     protected int tileHeight;   // height of tile in pixels
+    protected String swizzlePattern;  // current swizzle pattern
+    
+    // Custom swizzle parameters
+    protected int customBlockWidth = 4;   // custom swizzle block width
+    protected int customBlockHeight = 4;  // custom swizzle block height
+    protected boolean customMortonOrder = true;  // use morton order within blocks
 
 /**
 *
@@ -68,6 +84,7 @@ public abstract class TileCodec {
         this.description = description;
         this.tileWidth = tileWidth;
         this.tileHeight = tileHeight;
+        this.swizzlePattern = SWIZZLE_NONE;  // default to no swizzling
         bytesPerRow = (bitsPerPixel * tileWidth + 7) / 8; // round up to nearest byte
         tileSize = bytesPerRow * tileHeight;
         colorCount = 1 << bitsPerPixel;
@@ -151,6 +168,45 @@ public abstract class TileCodec {
 
 /**
 *
+* Gets the current swizzle pattern.
+*
+**/
+
+    public String getSwizzlePattern() {
+        return swizzlePattern;
+    }
+
+/**
+*
+* Sets the swizzle pattern.
+*
+**/
+
+    public void setSwizzlePattern(String swizzlePattern) {
+        this.swizzlePattern = swizzlePattern;
+    }
+
+/**
+*
+* Gets all available swizzle patterns.
+*
+**/
+
+    public static String[] getAvailableSwizzlePatterns() {
+        return new String[] {
+            SWIZZLE_NONE,
+            SWIZZLE_BC,
+            SWIZZLE_PSP,
+            SWIZZLE_NDS,
+            SWIZZLE_3DS,
+            SWIZZLE_WII,
+            SWIZZLE_SWITCH,
+            SWIZZLE_CUSTOM
+        };
+    }
+
+/**
+*
 *
 *
 **/
@@ -197,6 +253,48 @@ public abstract class TileCodec {
 
     public String toString() {
         return description;
+    }
+
+    /**
+     * Gets the custom swizzle block width.
+     */
+    public int getCustomBlockWidth() {
+        return customBlockWidth;
+    }
+
+    /**
+     * Sets the custom swizzle block width.
+     */
+    public void setCustomBlockWidth(int width) {
+        this.customBlockWidth = width;
+    }
+
+    /**
+     * Gets the custom swizzle block height.
+     */
+    public int getCustomBlockHeight() {
+        return customBlockHeight;
+    }
+
+    /**
+     * Sets the custom swizzle block height.
+     */
+    public void setCustomBlockHeight(int height) {
+        this.customBlockHeight = height;
+    }
+
+    /**
+     * Gets whether custom swizzle uses Morton order.
+     */
+    public boolean getCustomMortonOrder() {
+        return customMortonOrder;
+    }
+
+    /**
+     * Sets whether custom swizzle uses Morton order.
+     */
+    public void setCustomMortonOrder(boolean useMorton) {
+        this.customMortonOrder = useMorton;
     }
 
 }
